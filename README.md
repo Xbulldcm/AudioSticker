@@ -36,7 +36,7 @@ La extensión no descarga el video: abre el link en una pestaña de YouTube, esp
 
 ## Animación "Una vez" o "En bucle"
 
-WhatsApp no respeta el número de repeticiones guardado en el sticker: repite los stickers animados por su cuenta. Por eso, con **Una vez**, la extensión deja el último cuadro quieto 30 segundos al final. Así, aunque WhatsApp lo repita, se ve una sola vez y luego queda detenido. Con **En bucle** la animación se repite sin pausa.
+WhatsApp no respeta el número de repeticiones guardado en el sticker: repite los stickers animados por su cuenta. WhatsApp tampoco respeta la duración del audio: lo repite junto con la animación. Por eso, con **Una vez**, la extensión agrega 30 segundos al final: el último cuadro se queda quieto y el audio se rellena con silencio (pesa unos pocos KB). Así se ve y se oye una sola vez y luego queda detenido. Con **En bucle** la animación se repite sin pausa.
 
 ## Límites
 

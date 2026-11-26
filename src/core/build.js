@@ -2,9 +2,10 @@
 (() => {
   const S = (window.Sonistick = window.Sonistick || {});
   const MAX_WEBP = 1000000;
-  // WhatsApp ignora el número de repeticiones del WebP y repite los stickers animados por su cuenta.
-  // Para que "Una vez" se vea así, el último cuadro se queda quieto este tiempo extra.
-  const HOLD_LAST_MS = 30000;
+  // WhatsApp ignora el número de repeticiones del WebP y repite por su cuenta tanto la animación
+  // como el audio. Para que "Una vez" se vea y se oiga una sola vez, al final se agregan 30 s
+  // de último cuadro quieto y el audio se rellena con silencio hasta durar lo mismo.
+  const HOLD_SECONDS = 30;
 
   async function encodeFrame(bmp, side, quality) {
     const c = new OffscreenCanvas(side, side);
@@ -44,7 +45,7 @@
     return (sum / n) * frames.length + 200;
   }
 
-  async function encodeAll(frames, side, q, exif, loop, onProgress) {
+  async function encodeAll(frames, side, q, exif, loop, holdMs, onProgress) {
     const out = [];
     let prev = null;
     for (let i = 0; i < frames.length; i++) {
@@ -57,7 +58,7 @@
       }
       if (i % 5 === 0) onProgress(i / frames.length);
     }
-    if (loop === 1 && frames.length > 1) out[out.length - 1].duration += HOLD_LAST_MS;
+    if (holdMs > 0) out[out.length - 1].duration += holdMs;
     const list = out.map((f) => ({ chunks: S.parseWebp(f.bytes), duration: f.duration }));
     return { blob: S.buildAnimatedWebp(list, side, { exif, loop }), uniqueFrames: out.length };
   }
@@ -92,8 +93,7 @@
     const aEnd = Math.min(opts.aEnd ?? decoded.duration, decoded.duration);
     const pcm = S.sliceAudio(decoded.samples, opts.aStart || 0, aEnd, { gain: opts.gain || 1 });
     if (pcm.length < S.AUDIO_RATE * 0.2) throw new Error("El tramo de audio es demasiado corto");
-    report("Codificando audio…", 0);
-    const audio = await S.encodeAudio(pcm);
+    const soundSeconds = pcm.length / S.AUDIO_RATE;
 
     report("Capturando cuadros…", 0);
     const src = await S.openVisual(opts.visualFile);
@@ -102,11 +102,25 @@
       const vEnd = src.kind === "still" ? 0 : Math.min(opts.vEnd ?? src.duration, src.duration);
       captured = await S.captureFrames(src, {
         start: opts.vStart || 0, end: vEnd, fps: opts.fps || 15, fit: opts.fit || "contain",
-        side: 512, duration: audio.seconds, extend: opts.extend || "none",
+        side: 512, duration: soundSeconds, extend: opts.extend || "none",
       }, (p) => report("Capturando cuadros…", p));
     } finally {
       src.close();
     }
+
+    // Duración de la animación y, con "Una vez", relleno final para que nada se repita a la vista ni al oído.
+    const loop = opts.loop ?? 1;
+    const animMs = captured.frames.reduce((a, f) => a + f.duration, 0);
+    let holdMs = 0;
+    let audioPcm = pcm;
+    if (loop === 1) {
+      const totalSec = Math.max(animMs / 1000, soundSeconds) + HOLD_SECONDS;
+      holdMs = Math.round(totalSec * 1000 - animMs);
+      audioPcm = new Float32Array(Math.round(totalSec * S.AUDIO_RATE));
+      audioPcm.set(pcm);
+    }
+    report("Codificando audio…", 0);
+    const audio = await S.encodeAudio(audioPcm);
 
     const oggBytes = new Uint8Array(await audio.blob.arrayBuffer());
     const meta = {
@@ -128,7 +142,7 @@
         report(`Probando ${st.side}px · ${Math.round(captured.fps / st.div) || 1} fps…`, i / steps.length);
         const est = await estimate(used, st.side, st.q);
         if (est > MAX_WEBP * 0.97 && i < steps.length - 1) continue;
-        const enc = await encodeAll(used, st.side, st.q, exif, opts.loop ?? 1, (p) => report(`Creando sticker ${st.side}px…`, p));
+        const enc = await encodeAll(used, st.side, st.q, exif, loop, holdMs, (p) => report(`Creando sticker ${st.side}px…`, p));
         if (enc.blob.size <= MAX_WEBP) {
           result = { ...enc, side: st.side, quality: st.q, fps: captured.fps ? captured.fps / st.div : 0 };
           break;
@@ -144,7 +158,7 @@
       webp: result.blob, ogg: audio.blob,
       info: {
         side: result.side, quality: result.quality, fps: result.fps, frames: result.uniqueFrames,
-        webpBytes: result.blob.size, oggBytes: audio.blob.size, audioSeconds: audio.seconds,
+        webpBytes: result.blob.size, oggBytes: audio.blob.size, audioSeconds: audio.seconds, soundSeconds,
         audioBitrate: audio.bitrate, isAnimated: true, meta,
       },
     };

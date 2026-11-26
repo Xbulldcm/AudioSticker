@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Sonistick: stickers con sonido",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Crea stickers con sonido desde un video, una imagen o un GIF y envíalos desde WhatsApp Web. Extensión no oficial.",
   "icons": {
     "16": "icons/16.png",

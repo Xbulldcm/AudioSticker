@@ -389,7 +389,7 @@
       el("rstats").innerHTML =
         `${i.side}×${i.side} px${i.fps ? " · " + Math.round(i.fps) + " fps" : " · imagen fija"}<br>` +
         `Sticker: ${kb(i.webpBytes)} (${i.frames} cuadro${i.frames === 1 ? "" : "s"})<br>` +
-        `Audio: ${kb(i.oggBytes)} · ${i.audioSeconds.toFixed(1)} s`;
+        `Audio: ${kb(i.oggBytes)} · ${i.soundSeconds.toFixed(1)} s` + (i.audioSeconds > i.soundSeconds + 1 ? ` (+${Math.round(i.audioSeconds - i.soundSeconds)} s de silencio)` : "");
       el("sendmsg").textContent = "";
       show(el("result"), true);
       el("result").scrollIntoView({ behavior: "smooth", block: "nearest" });
