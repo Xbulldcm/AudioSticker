@@ -41,7 +41,7 @@
     return (sum / n) * frames.length + 200;
   }
 
-  async function encodeAll(frames, side, q, exif, onProgress) {
+  async function encodeAll(frames, side, q, exif, loop, onProgress) {
     const out = [];
     let prev = null;
     for (let i = 0; i < frames.length; i++) {
@@ -55,7 +55,7 @@
       if (i % 5 === 0) onProgress(i / frames.length);
     }
     const list = out.map((f) => ({ chunks: S.parseWebp(f.bytes), duration: f.duration }));
-    return { blob: S.buildAnimatedWebp(list, side, { exif }), uniqueFrames: out.length };
+    return { blob: S.buildAnimatedWebp(list, side, { exif, loop }), uniqueFrames: out.length };
   }
 
   function ladder(fps) {
@@ -75,7 +75,8 @@
       visualFile, audioFile,        // audioFile puede ser el mismo video
       vStart, vEnd, aStart, aEnd,   // segundos
       fps, fit ("contain"|"cover"), extend ("none"|"loop"|"freeze"),
-      pack, author, emoji, gain
+      pack, author, emoji, gain,
+      loop                          // veces que se reproduce la animación (0 = sin fin, por defecto 1)
     }
   */
   S.buildSticker = async function (opts, onProgress = () => {}) {
@@ -123,7 +124,7 @@
         report(`Probando ${st.side}px · ${Math.round(captured.fps / st.div) || 1} fps…`, i / steps.length);
         const est = await estimate(used, st.side, st.q);
         if (est > MAX_WEBP * 0.97 && i < steps.length - 1) continue;
-        const enc = await encodeAll(used, st.side, st.q, exif, (p) => report(`Creando sticker ${st.side}px…`, p));
+        const enc = await encodeAll(used, st.side, st.q, exif, opts.loop ?? 1, (p) => report(`Creando sticker ${st.side}px…`, p));
         if (enc.blob.size <= MAX_WEBP) {
           result = { ...enc, side: st.side, quality: st.q, fps: captured.fps ? captured.fps / st.div : 0 };
           break;

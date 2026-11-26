@@ -61,7 +61,7 @@
     u24(vp8x, 4, side - 1);
     u24(vp8x, 7, side - 1);
     const anim = new Uint8Array(6);
-    new DataView(anim.buffer).setUint16(4, loop, true); // fondo transparente, bucle infinito
+    new DataView(anim.buffer).setUint16(4, loop, true); // fondo transparente; 0 = bucle infinito, N = veces
     const parts = [chunk("VP8X", vp8x), chunk("ANIM", anim)];
     for (const f of frames) {
       const head = new Uint8Array(16);

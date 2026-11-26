@@ -116,6 +116,7 @@
         <label>Paquete<input type="text" data-opt="pack" placeholder="Sonistick" maxlength="60"></label>
         <label>Autor<input type="text" data-opt="author" placeholder="(opcional)" maxlength="60"></label>
         <label>Emoji<input type="text" data-opt="emoji" value="🔊" maxlength="8"></label>
+        <label>Animación<select data-opt="loop"><option value="1" selected>Una vez</option><option value="0">En bucle</option></select></label>
         <label>Volumen<select data-opt="gain"><option value="0.5">50 %</option><option value="1" selected>100 %</option><option value="1.5">150 %</option><option value="2">200 %</option></select></label>
       </div>
       <p class="hint">Se ajusta solo para quedar bajo 1 MB: si el tramo es largo, baja la resolución o los fps.</p>
@@ -359,7 +360,7 @@
       show(el("result"), false);
       const opts = {
         fps: +opt("fps").value, fit: opt("fit").value, pack: opt("pack").value.trim(), author: opt("author").value.trim(),
-        emoji: opt("emoji").value.trim() || "🔊", gain: +opt("gain").value, extend: opt("extend").value,
+        emoji: opt("emoji").value.trim() || "🔊", gain: +opt("gain").value, loop: +opt("loop").value, extend: opt("extend").value,
       };
       if (st.tab === "video") {
         Object.assign(opts, { visualFile: st.video, audioFile: st.video, vStart: +rng("vs").value, vEnd: +rng("ve").value, aStart: +rng("vs").value, aEnd: +rng("ve").value, extend: "none" });
