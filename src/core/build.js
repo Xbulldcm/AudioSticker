@@ -79,8 +79,8 @@
     opts = {
       visualFile, audioFile,        // audioFile puede ser el mismo video
       vStart, vEnd, aStart, aEnd,   // segundos
-      fps, fit ("contain"|"cover"), extend ("none"|"loop"|"freeze"),
-      pack, author, emoji, gain,
+      fps, look (ver look.js), extend ("none"|"loop"|"freeze"),
+      pack, author, emoji, gain, normalize (bool),
       loop                          // veces que se reproduce la animación (0 = sin fin, por defecto 1)
     }
   */
@@ -91,7 +91,10 @@
     const decoded = await S.decodeAudio(opts.audioFile);
     if (!decoded) throw new Error("No se encontró audio en el archivo elegido");
     const aEnd = Math.min(opts.aEnd ?? decoded.duration, decoded.duration);
-    const pcm = S.sliceAudio(decoded.samples, opts.aStart || 0, aEnd, { gain: opts.gain || 1 });
+    let pcm = S.sliceAudio(decoded.samples, opts.aStart || 0, aEnd, { gain: 1 });
+    let normalizeDb = null;
+    if (opts.normalize) { const n = S.normalizeAudio(pcm); pcm = n.samples; normalizeDb = n.gainDb; }
+    if (opts.gain && opts.gain !== 1) for (let i = 0; i < pcm.length; i++) pcm[i] = Math.max(-1, Math.min(1, pcm[i] * opts.gain));
     if (pcm.length < S.AUDIO_RATE * 0.2) throw new Error("El tramo de audio es demasiado corto");
     const soundSeconds = pcm.length / S.AUDIO_RATE;
 
@@ -101,7 +104,7 @@
     try {
       const vEnd = src.kind === "still" ? 0 : Math.min(opts.vEnd ?? src.duration, src.duration);
       captured = await S.captureFrames(src, {
-        start: opts.vStart || 0, end: vEnd, fps: opts.fps || 15, fit: opts.fit || "contain",
+        start: opts.vStart || 0, end: vEnd, fps: opts.fps || 15, look: opts.look || { ...S.defaultLook(), fit: opts.fit || "contain" },
         side: 512, duration: soundSeconds, extend: opts.extend || "none",
       }, (p) => report("Capturando cuadros…", p));
     } finally {
@@ -158,7 +161,7 @@
       webp: result.blob, ogg: audio.blob,
       info: {
         side: result.side, quality: result.quality, fps: result.fps, frames: result.uniqueFrames,
-        webpBytes: result.blob.size, oggBytes: audio.blob.size, audioSeconds: audio.seconds, soundSeconds,
+        webpBytes: result.blob.size, oggBytes: audio.blob.size, audioSeconds: audio.seconds, soundSeconds, normalizeDb,
         audioBitrate: audio.bitrate, isAnimated: true, meta,
       },
     };

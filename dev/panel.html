@@ -1,9 +1,19 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><title>Sonistick · prueba del panel</title></head>
 <body style="font-family:sans-serif;background:#e5ddd5;margin:0;height:100vh">
-<p style="padding:16px">Página de prueba del panel fuera de WhatsApp (enviar no funciona aquí; descargar sí).</p>
+<p style="padding:16px">Página de prueba del panel fuera de WhatsApp (enviar no funciona aquí; el historial se guarda solo en memoria).</p>
+<script>
+  // Almacenamiento falso en memoria para probar el historial sin la extensión.
+  window.Sonistick = { storeShim: (() => { const mem = {}; return async (op, x) => {
+    if (op === "get") { if (Array.isArray(x.keys)) return Object.fromEntries(x.keys.filter(k => k in mem).map(k => [k, mem[k]])); const r = {}; for (const k in x.keys) r[k] = k in mem ? mem[k] : x.keys[k]; return r; }
+    if (op === "set") { Object.assign(mem, JSON.parse(JSON.stringify(x.items))); return null; }
+    if (op === "remove") { for (const k of x.keys) delete mem[k]; return null; }
+    if (op === "bytes") return JSON.stringify(mem).length;
+  }; })() };
+</script>
 <script src="../src/core/ogg.js"></script><script src="../src/core/audio.js"></script><script src="../src/core/webp.js"></script>
-<script src="../src/core/frames.js"></script><script src="../src/core/build.js"></script><script src="../src/wa/whatsapp.js"></script>
-<script src="../src/ui/panel.js"></script><script src="../src/boot.js"></script>
+<script src="../src/core/look.js"></script><script src="../src/core/frames.js"></script><script src="../src/core/build.js"></script>
+<script src="../src/wa/whatsapp.js"></script><script src="../src/yt-client.js"></script><script src="../src/ui/timeline.js"></script>
+<script src="../src/history.js"></script><script src="../src/ui/panel.js"></script><script src="../src/boot.js"></script>
 <script>Sonistick.panel.show();</script>
 </body></html>

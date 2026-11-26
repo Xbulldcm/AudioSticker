@@ -99,23 +99,16 @@
     throw new Error("Formato no reconocido: " + (type || file.name));
   };
 
-  // Dibuja una fuente dentro de un cuadrado de lado `side`.
-  S.drawFit = function (ctx, src, sw, sh, side, fit) {
-    ctx.clearRect(0, 0, side, side);
-    const scale = fit === "cover" ? Math.max(side / sw, side / sh) : Math.min(side / sw, side / sh);
-    const w = sw * scale, h = sh * scale;
-    ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(src, (side - w) / 2, (side - h) / 2, w, h);
-  };
 
   // Captura los cuadros de una línea de tiempo.
-  // opts: {start, end, fps, fit, side, duration (largo final), extend: "none"|"loop"|"freeze"}
+  // opts: {start, end, fps, look (ver look.js), side, duration (largo final), extend: "none"|"loop"|"freeze"}
   S.captureFrames = async function (src, opts, onProgress = () => {}) {
     const side = opts.side || 512;
     const canvas = new OffscreenCanvas(side, side);
-    const ctx = canvas.getContext("2d");
+    const look = opts.look || S.defaultLook();
+    const ctx = canvas.getContext("2d", { willReadFrequently: !!look.key });
     if (src.kind === "still") {
-      S.drawFit(ctx, await src.frameAt(0), src.width, src.height, side, opts.fit);
+      S.drawFrame(ctx, await src.frameAt(0), src.width, src.height, side, look);
       return { frames: [{ bmp: canvas.transferToImageBitmap(), duration: Math.round((opts.duration || 1) * 1000) }], fps: 0 };
     }
     const segLen = opts.end - opts.start;
@@ -130,7 +123,7 @@
       else if (opts.extend === "loop") t = opts.start + (tau % segLen);
       else t = opts.end - 0.5 / opts.fps;
       const img = await src.frameAt(t);
-      S.drawFit(ctx, img, src.width, src.height, side, opts.fit);
+      S.drawFrame(ctx, img, src.width, src.height, side, look);
       frames.push({ bmp: canvas.transferToImageBitmap(), duration: step });
       if (i % 5 === 0) onProgress(i / n);
     }

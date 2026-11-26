@@ -52,6 +52,27 @@
     return out;
   };
 
+  // Lleva el volumen a un nivel parejo: RMS de las partes con sonido a -16 dBFS,
+  // sin que el pico pase de -1 dBFS. No amplifica más de 20 dB (para no subir el ruido).
+  S.normalizeAudio = function (samples) {
+    const win = 2400; // 50 ms
+    let sum = 0, count = 0, peak = 0;
+    for (let i = 0; i < samples.length; i += win) {
+      let s = 0;
+      const z = Math.min(samples.length, i + win);
+      for (let k = i; k < z; k++) { const v = samples[k]; s += v * v; if (Math.abs(v) > peak) peak = Math.abs(v); }
+      const rms = Math.sqrt(s / (z - i));
+      if (rms > 0.003) { sum += s; count += z - i; } // ignorar silencios
+    }
+    if (!count || !peak) return { samples, gainDb: 0 };
+    const rms = Math.sqrt(sum / count);
+    let gain = Math.pow(10, -16 / 20) / rms;
+    gain = Math.min(gain, Math.pow(10, -1 / 20) / peak, 10);
+    const out = new Float32Array(samples.length);
+    for (let i = 0; i < samples.length; i++) out[i] = samples[i] * gain;
+    return { samples: out, gainDb: 20 * Math.log10(gain) };
+  };
+
   async function encodeOpus(samples, bitrate) {
     if (typeof AudioEncoder === "undefined") throw new Error("Tu navegador no tiene WebCodecs (AudioEncoder). Usa Chrome, Edge o Brave actualizado.");
     const packets = [];

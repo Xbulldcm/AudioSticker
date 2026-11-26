@@ -19,12 +19,21 @@ Para actualizar: reemplaza los archivos y pulsa ↻ en la tarjeta de la extensi�
 1. Abre [web.whatsapp.com](https://web.whatsapp.com) y entra al chat donde quieres mandarlo.
 2. Pulsa el icono de la extensión o el botón 🔊 de abajo a la izquierda.
 3. Elige una pestaña:
-   - **Video con sonido:** eliges un video y marcas el tramo con *Inicio* y *Fin*. También puedes abrir **…o traerlo de YouTube**, pegar el link y escribir desde y hasta qué segundo (por ejemplo `1:05` a `1:12`, máximo 30 s).
-   - **Imagen o GIF + audio:** una imagen fija, GIF, WebP animado o video sin su sonido, más un audio aparte (MP3, M4A, OGG, WAV o el sonido de otro video), con su propio tramo. Si la animación es más corta que el audio, puedes repetirla o dejarla quieta en el último cuadro.
-4. Ajusta fluidez (fps), encuadre, paquete, autor, emoji y volumen, y pulsa **Crear sticker**.
-5. Revisa la vista previa con **Probar con sonido** y pulsa **Enviar al chat abierto** o **Enviármelo a mí**. También puedes **descargar** el `.webp` y el `.ogg`.
+   - **Video:** eliges un video (o lo traes de YouTube) y marcas el tramo en la línea de tiempo, que muestra miniaturas y la forma de onda. Arrastra las asas, o el tramo entero; los botones − y + mueven 0,1 s.
+   - **Imagen o GIF + audio:** una imagen fija, GIF, WebP animado o video sin su sonido, más un audio aparte con su propia línea de tiempo. Si la animación es más corta que el audio, puedes repetirla o dejarla quieta en el último cuadro.
+   - **Mis stickers:** el historial (ver abajo).
+4. En **Diseño** ajustas cómo se ve, con vista previa al momento:
+   - **Encuadre** completo o llenando el cuadrado, **zoom**, y arrastrar la vista previa para mover la imagen.
+   - **Quitar color de fondo:** vuelve transparente un color (por ejemplo un fondo blanco o verde). Pulsa *Elegir color* y toca ese color en la vista previa; ajusta la tolerancia.
+   - **Texto** arriba y abajo, estilo meme, con color y tamaño.
+5. En **Formato**: fluidez (fps), animación *Una vez* o *En bucle*, **normalizar volumen** (activado por defecto), volumen extra, emoji, paquete y autor. Pulsa **Crear sticker**.
+6. En la **vista previa** pulsa *Reproducir con sonido* para verlo y oírlo juntos. Luego **Enviar al chat abierto**, **Enviármelo a mí** o **Descargar**.
 
 Quien lo recibe necesita una versión de WhatsApp que ya reproduzca stickers con sonido; si no, verá un aviso de mensaje no compatible.
+
+## Historial (Mis stickers)
+
+Está **apagado por defecto**. Actívalo en la pestaña *Mis stickers* con *Guardar los stickers que cree* y elige cuántos guardar (10, 25 o 50; al pasar el límite se borran los más viejos). Se guardan en el almacenamiento de la extensión, solo en este navegador y no en WhatsApp, así que no se pierden al cerrar sesión. Cada sticker ocupa entre 0,2 y 1 MB. Desde ahí puedes abrirlos para probarlos, reenviarlos, descargarlos, borrarlos uno a uno o borrar todo.
 
 ## Videos de YouTube
 
@@ -57,13 +66,16 @@ Partes del código:
 
 | Archivo | Qué hace |
 |---|---|
-| `src/core/audio.js` | Decodifica el audio, recorta con fundido de 8 ms, lo pasa a mono 48 kHz y lo codifica a Opus con `AudioEncoder`. |
+| `src/core/audio.js` | Decodifica el audio, recorta con fundido de 8 ms, normaliza el volumen (−16 dBFS, pico −1 dBFS), lo pasa a mono 48 kHz y lo codifica a Opus con `AudioEncoder`. |
 | `src/core/ogg.js` | Empaqueta los paquetes Opus en Ogg (OpusHead, OpusTags, páginas con CRC). |
+| `src/core/look.js` | Encuadre (zoom y posición), quitar un color de fondo y texto encima. |
 | `src/core/frames.js` | Abre la fuente (video, GIF/WebP/APNG con `ImageDecoder`, imagen fija) y captura los cuadros del tramo. |
 | `src/core/webp.js` | Arma el WebP animado (VP8X, ANIM, ANMF, EXIF) a partir de los cuadros que codifica el canvas. |
 | `src/core/build.js` | Une todo y busca la mejor combinación de resolución, calidad y fps que quepa en 1 MB. Fusiona cuadros repetidos. |
 | `src/wa/whatsapp.js` | Habla con WhatsApp Web: activa la función localmente, sube el audio y envía el sticker con el audio enlazado. |
 | `src/ui/panel.js` | Panel flotante (Shadow DOM). |
+| `src/ui/timeline.js` | Línea de tiempo con miniaturas, forma de onda y asas para elegir el tramo. |
+| `src/history.js` | Historial opcional en `chrome.storage.local` (a través de `src/bridge.js`). |
 | `src/youtube.js`, `src/yt-client.js`, `src/bridge.js` | Grabación de tramos de YouTube: el fondo abre la pestaña y graba con `captureStream` + `MediaRecorder`; el puente pasa el resultado a WhatsApp Web. |
 | `dev/` | Páginas para probar la conversión y el panel sin WhatsApp (ábrelas con un servidor local o directamente en Chrome). |
 
