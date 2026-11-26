@@ -19,12 +19,20 @@ Para actualizar: reemplaza los archivos y pulsa ↻ en la tarjeta de la extensi�
 1. Abre [web.whatsapp.com](https://web.whatsapp.com) y entra al chat donde quieres mandarlo.
 2. Pulsa el icono de la extensión o el botón 🔊 de abajo a la izquierda.
 3. Elige una pestaña:
-   - **Video con sonido:** eliges un video y marcas el tramo con *Inicio* y *Fin*.
+   - **Video con sonido:** eliges un video y marcas el tramo con *Inicio* y *Fin*. También puedes abrir **…o traerlo de YouTube**, pegar el link y escribir desde y hasta qué segundo (por ejemplo `1:05` a `1:12`, máximo 30 s).
    - **Imagen o GIF + audio:** una imagen fija, GIF, WebP animado o video sin su sonido, más un audio aparte (MP3, M4A, OGG, WAV o el sonido de otro video), con su propio tramo. Si la animación es más corta que el audio, puedes repetirla o dejarla quieta en el último cuadro.
 4. Ajusta fluidez (fps), encuadre, paquete, autor, emoji y volumen, y pulsa **Crear sticker**.
 5. Revisa la vista previa con **Probar con sonido** y pulsa **Enviar al chat abierto** o **Enviármelo a mí**. También puedes **descargar** el `.webp` y el `.ogg`.
 
 Quien lo recibe necesita una versión de WhatsApp que ya reproduzca stickers con sonido; si no, verá un aviso de mensaje no compatible.
+
+## Videos de YouTube
+
+La extensión no descarga el video: abre el link en una pestaña de YouTube, espera a que terminen los anuncios, va al segundo de inicio y **graba el tramo en tiempo real** mientras se reproduce (se oye mientras graba). Al terminar cierra esa pestaña y vuelve a WhatsApp Web con el tramo cargado para que lo recortes y crees el sticker.
+
+- Tarda lo que dure el tramo, más unos segundos de carga.
+- No sirve con videos privados, con restricción de edad sin sesión iniciada, ni con contenido protegido (por ejemplo, películas de pago).
+- Respeta los derechos de autor y las condiciones de YouTube: úsalo solo con contenido que puedas compartir.
 
 ## Límites
 
@@ -52,6 +60,7 @@ Partes del código:
 | `src/core/build.js` | Une todo y busca la mejor combinación de resolución, calidad y fps que quepa en 1 MB. Fusiona cuadros repetidos. |
 | `src/wa/whatsapp.js` | Habla con WhatsApp Web: activa la función localmente, sube el audio y envía el sticker con el audio enlazado. |
 | `src/ui/panel.js` | Panel flotante (Shadow DOM). |
+| `src/youtube.js`, `src/yt-client.js`, `src/bridge.js` | Grabación de tramos de YouTube: el fondo abre la pestaña y graba con `captureStream` + `MediaRecorder`; el puente pasa el resultado a WhatsApp Web. |
 | `dev/` | Páginas para probar la conversión y el panel sin WhatsApp (ábrelas con un servidor local o directamente en Chrome). |
 
 ## Si algo falla

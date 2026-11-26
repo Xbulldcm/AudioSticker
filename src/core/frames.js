@@ -21,15 +21,11 @@
     v.preload = "auto";
     v.src = url;
     await waitEvent(v, "loadeddata");
-    if (!isFinite(v.duration)) {
-      // Algunos WebM no traen la duración: forzarla buscando al final.
-      v.currentTime = 1e7;
-      await waitEvent(v, "seeked");
-    }
+    const duration = await S.videoDuration(v, file);
     return {
-      kind: "video", url, el: v, width: v.videoWidth, height: v.videoHeight, duration: v.duration,
+      kind: "video", url, el: v, width: v.videoWidth, height: v.videoHeight, duration,
       async frameAt(t) {
-        const target = Math.max(0, Math.min(v.duration - 0.001, t));
+        const target = Math.max(0, Math.min(duration - 0.001, t));
         if (Math.abs(v.currentTime - target) > 1e-4 || v.seeking) {
           v.currentTime = target;
           await waitEvent(v, "seeked");
@@ -39,6 +35,22 @@
       close() { v.removeAttribute("src"); v.load(); URL.revokeObjectURL(url); },
     };
   }
+
+  // Duración de un video ya cargado. Las grabaciones WebM no la traen: se busca hasta el final
+  // y, si aun así no aparece, se usa la duración conocida de la grabación.
+  S.durationHints = S.durationHints || new WeakMap();
+  S.videoDuration = async function (v, file) {
+    if (isFinite(v.duration) && v.duration > 0) return v.duration;
+    const hint = S.durationHints.get(file);
+    try {
+      v.currentTime = 1e7;
+      await waitEvent(v, "seeked", "error", 5000);
+    } catch (e) { /* usar la pista */ }
+    const d = isFinite(v.duration) && v.duration > 0 ? v.duration : hint;
+    v.currentTime = 0;
+    if (!(d > 0)) throw new Error("No se pudo saber cuánto dura el video");
+    return d;
+  };
 
   async function openAnimated(file) {
     const dec = new ImageDecoder({ data: file.stream(), type: file.type });

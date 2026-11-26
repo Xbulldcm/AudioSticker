@@ -1,19 +1,55 @@
 {
   "manifest_version": 3,
   "name": "Sonistick: stickers con sonido",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Crea stickers con sonido desde un video, una imagen o un GIF y envíalos desde WhatsApp Web. Extensión no oficial.",
-  "icons": { "16": "icons/16.png", "32": "icons/32.png", "48": "icons/48.png", "128": "icons/128.png" },
-  "permissions": ["scripting"],
-  "host_permissions": ["https://web.whatsapp.com/*"],
-  "background": { "service_worker": "background.js" },
-  "action": { "default_title": "Abrir Sonistick", "default_icon": { "16": "icons/16.png", "32": "icons/32.png" } },
+  "icons": {
+    "16": "icons/16.png",
+    "32": "icons/32.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "permissions": [
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://web.whatsapp.com/*",
+    "https://www.youtube.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Abrir Sonistick",
+    "default_icon": {
+      "16": "icons/16.png",
+      "32": "icons/32.png"
+    }
+  },
   "content_scripts": [
     {
-      "matches": ["https://web.whatsapp.com/*"],
+      "matches": [
+        "https://web.whatsapp.com/*"
+      ],
       "js": [
-        "src/core/ogg.js", "src/core/audio.js", "src/core/webp.js", "src/core/frames.js", "src/core/build.js",
-        "src/wa/whatsapp.js", "src/ui/panel.js", "src/boot.js"
+        "src/bridge.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://web.whatsapp.com/*"
+      ],
+      "js": [
+        "src/core/ogg.js",
+        "src/core/audio.js",
+        "src/core/webp.js",
+        "src/core/frames.js",
+        "src/core/build.js",
+        "src/wa/whatsapp.js",
+        "src/yt-client.js",
+        "src/ui/panel.js",
+        "src/boot.js"
       ],
       "run_at": "document_idle",
       "world": "MAIN"

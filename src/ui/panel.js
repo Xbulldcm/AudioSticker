@@ -44,6 +44,10 @@
   .err { color: var(--warn); font-size: 12.5px; margin: 6px 0; white-space: pre-wrap; }
   .bar { height: 6px; background: var(--soft); border-radius: 3px; overflow: hidden; margin-top: 6px; }
   .bar i { display:block; height:100%; width:0; background: var(--accent); transition: width .15s; }
+  details.yt { margin-top: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+  details.yt summary { cursor: pointer; color: var(--muted); }
+  details.yt[open] summary { margin-bottom: 8px; }
+  details.yt > input, details.yt .grid { margin-bottom: 8px; }
   canvas.wave { width: 100%; height: 56px; display:block; background: var(--soft); border-radius: 8px; margin-top: 8px; }
   .result { display:flex; gap: 10px; align-items:flex-start; }
   .result img { width: 128px; height: 128px; border-radius: 10px; background: repeating-conic-gradient(#ccc 0 25%, #fff 0 50%) 0 0/16px 16px; flex: none; }
@@ -62,6 +66,17 @@
 
     <section data-pane="video">
       <label class="file">Elegir video…<input type="file" accept="video/*" data-in="video"></label>
+      <details class="yt" data-el="yt">
+        <summary>…o traerlo de YouTube</summary>
+        <input type="text" data-yt="url" placeholder="https://www.youtube.com/watch?v=…">
+        <div class="grid">
+          <label>Desde (m:ss)<input type="text" data-yt="start" placeholder="0:00"></label>
+          <label>Hasta (m:ss)<input type="text" data-yt="end" placeholder="0:05"></label>
+        </div>
+        <button class="btn full" data-act="ytgo">Traer tramo de YouTube</button>
+        <p class="hint">Se abre el video en una pestaña, se graba ese tramo en tiempo real (máx. 30 s, se oirá) y vuelve aquí. Luego puedes afinar el recorte abajo.</p>
+        <p class="hint" data-el="ytmsg"></p>
+      </details>
       <video class="media hidden" data-el="vprev" controls muted playsinline></video>
       <div data-el="vtrim" class="hidden">
         <h4>Tramo</h4>
@@ -197,9 +212,8 @@
       vprev.play();
     });
 
-    q('[data-in="video"]').addEventListener("change", async (ev) => {
-      const f = ev.target.files[0];
-      if (!f) return;
+    q('[data-in="video"]').addEventListener("change", (ev) => { if (ev.target.files[0]) loadVideo(ev.target.files[0]); });
+    async function loadVideo(f) {
       setError("");
       st.video = f;
       st.videoReady = false;
@@ -207,11 +221,60 @@
       show(vprev, true);
       q('[data-in="video"]').parentElement.firstChild.textContent = f.name;
       await new Promise((r) => { vprev.onloadedmetadata = r; vprev.onerror = r; });
-      if (!isFinite(vprev.duration) || !vprev.duration) { setError("No se pudo leer ese video. Prueba con MP4 o WebM."); return; }
-      setVideoTrim(vprev.duration, 5);
+      let dur;
+      try { dur = await S.videoDuration(vprev, f); } catch (e) { dur = NaN; }
+      if (!isFinite(dur) || !dur) { setError("No se pudo leer ese video. Prueba con MP4 o WebM."); return; }
+      st.videoDuration = dur;
+      setVideoTrim(dur, 5);
       show(el("vtrim"), true);
       st.videoReady = true;
       refreshCreate();
+    }
+
+    // ---------- YouTube
+    function parseTime(txt) {
+      const t = String(txt || "").trim().replace(",", ".");
+      if (!t) return NaN;
+      const parts = t.split(":").map(Number);
+      if (parts.some((n) => !isFinite(n) || n < 0)) return NaN;
+      return parts.reduce((acc, n) => acc * 60 + n, 0);
+    }
+    q('[data-yt="url"]').addEventListener("change", () => {
+      // Si el link trae ?t=…, usarlo como inicio.
+      try {
+        const u = new URL(q('[data-yt="url"]').value.trim());
+        const t = u.searchParams.get("t") || u.searchParams.get("start");
+        if (t && !q('[data-yt="start"]').value) {
+          const m = t.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/);
+          const sec = m ? (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0) : NaN;
+          if (isFinite(sec)) {
+            q('[data-yt="start"]').value = Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
+            if (!q('[data-yt="end"]').value) { const e = sec + 5; q('[data-yt="end"]').value = Math.floor(e / 60) + ":" + String(e % 60).padStart(2, "0"); }
+          }
+        }
+      } catch (e) { /* no es una URL */ }
+    });
+    act("ytgo").addEventListener("click", async () => {
+      const url = q('[data-yt="url"]').value.trim();
+      const start = parseTime(q('[data-yt="start"]').value || "0");
+      const end = parseTime(q('[data-yt="end"]').value);
+      setError("");
+      if (!url) return setError("Pega el link del video de YouTube.");
+      if (!isFinite(start) || !isFinite(end)) return setError("Escribe el inicio y el fin como 1:23 o en segundos.");
+      if (end <= start) return setError("El fin tiene que ser mayor que el inicio.");
+      if (end - start > 30) return setError("El tramo de YouTube puede durar como máximo 30 s.");
+      act("ytgo").disabled = true;
+      try {
+        const file = await S.yt.record(url, start, end, (m) => (el("ytmsg").textContent = m));
+        el("ytmsg").textContent = "Tramo traído de YouTube.";
+        await loadVideo(file);
+        setVideoTrim(st.videoDuration, st.videoDuration);
+      } catch (e) {
+        el("ytmsg").textContent = "";
+        setError("YouTube: " + (e.message || e));
+      } finally {
+        act("ytgo").disabled = false;
+      }
     });
 
     // ---------- imagen + audio
