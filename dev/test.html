@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Sonistick · prueba de conversión</title></head>
+<body style="font-family:sans-serif;padding:16px">
+<h1>Prueba de conversión (sin WhatsApp)</h1>
+<p>Visual: <input type="file" id="v"> Audio (vacío = el mismo): <input type="file" id="a"></p>
+<p><button id="go">Crear</button> <span id="st"></span></p>
+<div id="out"></div>
+<script src="../src/core/ogg.js"></script>
+<script src="../src/core/audio.js"></script>
+<script src="../src/core/webp.js"></script>
+<script src="../src/core/frames.js"></script>
+<script src="../src/core/build.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+window.runTest = async (extra = {}) => {
+  const v = $("v").files[0], a = $("a").files[0] || v;
+  const r = await Sonistick.buildSticker({ visualFile: v, audioFile: a, fps: 15, vStart: 0, vEnd: 4, aStart: 0, aEnd: 4, ...extra }, (s, p) => $("st").textContent = s + " " + Math.round(p * 100) + "%");
+  window.lastResult = r;
+  const img = new Image(); img.src = URL.createObjectURL(r.webp); img.width = 256;
+  const au = new Audio(URL.createObjectURL(r.ogg)); au.controls = true;
+  $("out").replaceChildren(img, au, document.createTextNode(JSON.stringify(r.info)));
+  return r.info;
+};
+$("go").onclick = () => runTest().catch((e) => $("st").textContent = "Error: " + e.message);
+</script>
+</body></html>
