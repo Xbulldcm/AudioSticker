@@ -67,6 +67,12 @@
   .stats { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 8px; }
   .actions { display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
   .actions .wide { grid-column: 1 / -1; }
+  .tip { display:inline-flex; align-items:center; justify-content:center; width: 15px; height: 15px; margin-left: 5px; border-radius: 50%;
+    border: 1px solid var(--muted); color: var(--muted); font: italic 600 10px/1 Georgia, serif; cursor: help; vertical-align: middle; flex: none; user-select: none; }
+  .tip:hover, .tip:focus { border-color: var(--accent); color: var(--accent); outline: none; }
+  .tipbox { position: fixed; z-index: 2147483001; max-width: 250px; padding: 7px 9px; border-radius: 8px; background: #111b21; color: #fff;
+    font-size: 12px; line-height: 1.4; box-shadow: 0 4px 16px rgba(0,0,0,.3); pointer-events: none; }
+  @media (prefers-color-scheme: dark) { .tipbox { background: #e9edef; color: #111b21; } }
   .hist { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
   .hitem { min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 6px; display:flex; flex-direction:column; gap: 4px; background: var(--soft); }
   .hitem img { width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: 6px; background: var(--chat); cursor: pointer; }
@@ -94,36 +100,35 @@
     <section data-pane="video">
       <label class="file"><span data-o="vname">Elegir video…</span><input type="file" accept="video/*" data-in="video"></label>
       <details class="box" data-el="yt">
-        <summary>…o traerlo de YouTube</summary>
+        <summary>…o traerlo de YouTube<span class="tip" tabindex="0" data-tip="Abre el video en una pestaña y graba el tramo mientras se reproduce (se oye). Máximo 30 s.">i</span></summary>
         <input type="text" data-yt="url" placeholder="https://www.youtube.com/watch?v=…">
         <div class="grid">
           <label>Desde (m:ss)<input type="text" data-yt="start" placeholder="0:00"></label>
           <label>Hasta (m:ss)<input type="text" data-yt="end" placeholder="0:05"></label>
         </div>
         <button class="btn full" data-act="ytgo">Traer tramo de YouTube</button>
-        <p class="hint">Se abre el video en una pestaña, se graba ese tramo mientras se reproduce (máx. 30 s, se oirá) y vuelve aquí para afinar el recorte.</p>
         <p class="hint" data-el="ytmsg"></p>
       </details>
       <div data-el="vbox" class="hidden">
         <video class="media" data-el="vprev" muted playsinline></video>
         <canvas class="tl" data-el="vtl"></canvas>
         ${timeRow("v")}
-        <div class="row"><button class="btn small" data-act="vplay">▶ Ver tramo con sonido</button><span class="hint">Arrastra las asas o el tramo; toca fuera para ver ese momento.</span></div>
+        <div class="row"><button class="btn small" data-act="vplay">▶ Ver tramo con sonido</button><span class="tip" tabindex="0" data-tip="Arrastra las asas verdes para marcar inicio y fin, o el tramo entero para moverlo. Toca fuera del tramo para ver ese momento. − y + mueven 0,1 s.">i</span></div>
       </div>
     </section>
 
     <section data-pane="image" class="hidden">
-      <label class="file"><span data-o="iname">Elegir imagen, GIF, WebP o video (sin su sonido)…</span><input type="file" accept="image/*,video/*" data-in="image"></label>
+      <label class="file"><span data-o="iname">Elegir imagen, GIF, WebP o video…</span><input type="file" accept="image/*,video/*" data-in="image"></label>
       <p class="hint hidden" data-el="ianim"></p>
       <h4>Audio</h4>
       <label class="file"><span data-o="aname">Elegir audio (MP3, M4A, OGG, WAV o un video)…</span><input type="file" accept="audio/*,video/*" data-in="audio"></label>
       <div data-el="abox" class="hidden">
         <canvas class="tl wave" data-el="atl"></canvas>
         ${timeRow("a")}
-        <div class="row"><button class="btn small" data-act="aplay">▶ Escuchar tramo</button></div>
+        <div class="row"><button class="btn small" data-act="aplay">▶ Escuchar tramo</button><span class="tip" tabindex="0" data-tip="Arrastra las asas para elegir qué parte del audio suena. El sticker dura lo que dure este tramo.">i</span></div>
       </div>
       <div data-el="extendRow" class="hidden">
-        <label class="field">Si la animación dura menos que el audio
+        <label class="field"><span>Si la animación dura menos que el audio<span class="tip" tabindex="0" data-tip="Cada uno con su duración: la animación termina antes. Repetir: vuelve a empezar hasta que acabe el audio. Quedarse: se detiene en el último cuadro.">i</span></span>
           <select data-opt="extend">
             <option value="none">Cada uno con su duración</option>
             <option value="loop">Repetir la animación</option>
@@ -138,19 +143,19 @@
       <div class="design">
         <canvas class="stage" width="512" height="512" data-el="stage" title="Arrastra para mover la imagen"></canvas>
         <div class="controls">
-          <label class="field">Encuadre
+          <label class="field"><span>Encuadre<span class="tip" tabindex="0" data-tip="Completo: se ve toda la imagen, con bordes transparentes. Llenar: ocupa todo el cuadrado y recorta lo que sobra.">i</span></span>
             <select data-look="fit"><option value="contain">Completo</option><option value="cover">Llenar el cuadrado</option></select>
           </label>
-          <div class="row"><span class="hint">Zoom</span><input type="range" min="1" max="4" step="0.05" value="1" data-look="zoom"><button class="btn tiny" data-act="center" title="Centrar">⟲</button></div>
-          <label class="check"><input type="checkbox" data-look="keyOn"> Quitar color de fondo</label>
+          <div class="row" style="flex-wrap:nowrap"><span class="hint">Zoom</span><span class="tip" tabindex="0" data-tip="Acerca la imagen. Luego arrastra la vista previa para elegir qué parte se ve.">i</span><input type="range" min="1" max="4" step="0.05" value="1" data-look="zoom"><button class="btn tiny" data-act="center" title="Centrar">⟲</button></div>
+          <label class="check"><input type="checkbox" data-look="keyOn"> Quitar fondo<span class="tip" tabindex="0" data-tip="Vuelve transparente un color. Ideal para fondos lisos (blanco, verde). Pulsa «Elegir color» y toca el fondo en la vista previa.">i</span></label>
           <div data-el="keyBox" class="hidden">
             <div class="row"><button class="btn tiny" data-act="pick">Elegir color</button><span class="swatch" data-el="swatch"></span></div>
-            <div class="row"><span class="hint">Tolerancia</span><input type="range" min="0.02" max="0.6" step="0.01" value="0.18" data-look="tol"></div>
+            <div class="row"><span class="hint">Tolerancia</span><span class="tip" tabindex="0" data-tip="Más alto quita también colores parecidos. Si se borra parte de la imagen, bájala.">i</span><input type="range" min="0.02" max="0.6" step="0.01" value="0.18" data-look="tol"></div>
           </div>
         </div>
       </div>
-      <p class="hint" data-el="stagehint">Arrastra la vista previa para mover la imagen.</p>
-      <h4>Texto</h4>
+      <p class="hint hidden" data-el="stagehint"></p>
+      <h4>Texto<span class="tip" tabindex="0" data-tip="Texto estilo meme. Se pasa a mayúsculas y se achica solo si no cabe.">i</span></h4>
       <div class="grid">
         <label>Arriba<input type="text" data-look="top" maxlength="80" placeholder="(opcional)"></label>
         <label>Abajo<input type="text" data-look="bottom" maxlength="80" placeholder="(opcional)"></label>
@@ -161,24 +166,22 @@
     <section data-pane="format" class="hidden">
       <h4>Formato</h4>
       <div class="grid">
-        <label>Fluidez<select data-opt="fps"><option>10</option><option selected>15</option><option>20</option><option>25</option><option>30</option></select></label>
-        <label>Animación<select data-opt="loop"><option value="1" selected>Una vez</option><option value="0">En bucle</option></select></label>
-        <label>Volumen extra<select data-opt="gain"><option value="0.5">50 %</option><option value="0.75">75 %</option><option value="1" selected>100 %</option><option value="1.5">150 %</option><option value="2">200 %</option></select></label>
-        <label>Emoji<input type="text" data-opt="emoji" value="🔊" maxlength="8"></label>
-        <label>Paquete<input type="text" data-opt="pack" placeholder="Sonistick" maxlength="60"></label>
+        <label><span>Fluidez<span class="tip" tabindex="0" data-tip="Cuadros por segundo. Más fluido pesa más; si no cabe en 1 MB, la extensión baja la calidad o los fps sola.">i</span></span><select data-opt="fps"><option>10</option><option selected>15</option><option>20</option><option>25</option><option>30</option></select></label>
+        <label><span>Animación<span class="tip" tabindex="0" data-tip="Una vez: se reproduce y se queda quieto. WhatsApp repite los stickers por su cuenta, así que se agrega una pausa con silencio al final. En bucle: se repite sin parar.">i</span></span><select data-opt="loop"><option value="1" selected>Una vez</option><option value="0">En bucle</option></select></label>
+        <label><span>Volumen extra</span><select data-opt="gain"><option value="0.5">50 %</option><option value="0.75">75 %</option><option value="1" selected>100 %</option><option value="1.5">150 %</option><option value="2">200 %</option></select></label>
+        <label><span>Emoji<span class="tip" tabindex="0" data-tip="Emoji asociado al sticker. WhatsApp lo usa para sugerirlo y buscarlo.">i</span></span><input type="text" data-opt="emoji" value="🔊" maxlength="8"></label>
+        <label><span>Paquete<span class="tip" tabindex="0" data-tip="Nombre del paquete y autor que WhatsApp muestra en los detalles del sticker. Opcional.">i</span></span><input type="text" data-opt="pack" placeholder="Sonistick" maxlength="60"></label>
         <label>Autor<input type="text" data-opt="author" placeholder="(opcional)" maxlength="60"></label>
       </div>
-      <div class="row"><label class="check"><input type="checkbox" data-opt="normalize" checked> Normalizar volumen (que no suene ni muy bajo ni muy fuerte)</label></div>
-      <p class="hint">Se ajusta solo para quedar bajo 1 MB: si el tramo es largo, baja la resolución o los fps.</p>
+      <div class="row"><label class="check"><input type="checkbox" data-opt="normalize" checked> Normalizar volumen<span class="tip" tabindex="0" data-tip="Ajusta el audio a un volumen parejo para que no suene ni muy bajo ni muy fuerte.">i</span></label></div>
       <button class="btn primary full" data-act="create" disabled>Crear sticker</button>
       <div data-el="prog" class="hidden"><p class="hint" data-o="stage"></p><div class="bar"><i data-el="barfill"></i></div></div>
       <p class="err hidden" data-el="err"></p>
     </section>
 
     <section data-pane="hist" class="hidden">
-      <label class="check"><input type="checkbox" data-hist="enabled"> Guardar los stickers que cree</label>
+      <label class="check"><input type="checkbox" data-hist="enabled"> Guardar los stickers que cree<span class="tip" tabindex="0" data-tip="Se guardan en este navegador (no en WhatsApp), así que no se pierden al cerrar sesión. Cada uno ocupa entre 0,2 y 1 MB; al pasar el máximo se borran los más viejos.">i</span></label>
       <div class="row"><span class="hint">Guardar como máximo</span><select data-hist="max" style="width:auto"><option>10</option><option selected>25</option><option>50</option></select><span class="hint grow" data-o="histUsage"></span></div>
-      <p class="hint">Se guardan en el almacenamiento de la extensión, solo en este navegador. Cada sticker ocupa entre 0,2 y 1 MB.</p>
       <div class="hist" data-el="histList"></div>
       <p class="hint" data-el="histEmpty">Todavía no hay stickers guardados.</p>
       <button class="btn small" data-act="histClear">Borrar todo el historial</button>
@@ -194,7 +197,7 @@
       <div class="stats" data-el="rstats"></div>
       <div class="actions">
         <button class="btn primary" data-act="sendActive">Enviar al chat abierto</button>
-        <button class="btn" data-act="sendSelf">Enviármelo a mí</button>
+        <button class="btn" data-act="sendSelf" title="Lo envía a tu propio chat para probarlo o marcarlo como favorito sin molestar a nadie.">Enviármelo a mí</button>
         <button class="btn wide small" data-act="download">Descargar archivos (.webp + .ogg)</button>
       </div>
       <p class="hint" data-el="sendmsg"></p>
@@ -455,7 +458,8 @@
       st.picking = on;
       stage.classList.toggle("pick", on);
       act("pick").classList.toggle("on", on);
-      el("stagehint").textContent = on ? "Toca en la vista previa el color que quieres quitar." : "Arrastra la vista previa para mover la imagen.";
+      el("stagehint").textContent = "Toca en la vista previa el color que quieres quitar.";
+      show(el("stagehint"), on);
     }
     function updateSwatch() {
       const k = st.look.key;
@@ -686,6 +690,30 @@
       await S.history.clear().catch(histError);
       renderHistory();
     });
+
+    // ---------- ayudas (i)
+    const tipbox = document.createElement("div");
+    tipbox.className = "tipbox hidden";
+    tipbox.setAttribute("role", "tooltip");
+    root.appendChild(tipbox);
+    function showTip(t) {
+      tipbox.textContent = t.dataset.tip;
+      show(tipbox, true);
+      const r = t.getBoundingClientRect(), b = tipbox.getBoundingClientRect();
+      const x = Math.max(8, Math.min(window.innerWidth - b.width - 8, r.left + r.width / 2 - b.width / 2));
+      const y = r.top - b.height - 6 < 8 ? r.bottom + 6 : r.top - b.height - 6;
+      tipbox.style.left = x + "px";
+      tipbox.style.top = y + "px";
+    }
+    const hideTip = () => show(tipbox, false);
+    root.querySelectorAll(".tip").forEach((t) => {
+      t.addEventListener("pointerenter", () => showTip(t));
+      t.addEventListener("pointerleave", hideTip);
+      t.addEventListener("focus", () => showTip(t));
+      t.addEventListener("blur", hideTip);
+      t.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); showTip(t); }); // dentro de etiquetas: no activar el control
+    });
+    wrap.addEventListener("scroll", hideTip);
 
     act("close").addEventListener("click", () => api.hide());
 

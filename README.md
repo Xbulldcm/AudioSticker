@@ -17,7 +17,7 @@ Para actualizar: reemplaza los archivos y pulsa ↻ en la tarjeta de la extensi�
 ## Usar
 
 1. Abre [web.whatsapp.com](https://web.whatsapp.com) y entra al chat donde quieres mandarlo.
-2. Pulsa el icono de la extensión o el botón 🔊 de abajo a la izquierda.
+2. Pulsa el icono de la extensión o el botón 🔊 de abajo a la izquierda. Pasa el ratón por los íconos ⓘ para ver qué hace cada opción.
 3. Elige una pestaña:
    - **Video:** eliges un video (o lo traes de YouTube) y marcas el tramo en la línea de tiempo, que muestra miniaturas y la forma de onda. Arrastra las asas, o el tramo entero; los botones − y + mueven 0,1 s.
    - **Imagen o GIF + audio:** una imagen fija, GIF, WebP animado o video sin su sonido, más un audio aparte con su propia línea de tiempo. Si la animación es más corta que el audio, puedes repetirla o dejarla quieta en el último cuadro.
