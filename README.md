@@ -34,6 +34,10 @@ La extensión no descarga el video: abre el link en una pestaña de YouTube, esp
 - No sirve con videos privados, con restricción de edad sin sesión iniciada, ni con contenido protegido (por ejemplo, películas de pago).
 - Respeta los derechos de autor y las condiciones de YouTube: úsalo solo con contenido que puedas compartir.
 
+## Animación "Una vez" o "En bucle"
+
+WhatsApp no respeta el número de repeticiones guardado en el sticker: repite los stickers animados por su cuenta. Por eso, con **Una vez**, la extensión deja el último cuadro quieto 30 segundos al final. Así, aunque WhatsApp lo repita, se ve una sola vez y luego queda detenido. Con **En bucle** la animación se repite sin pausa.
+
 ## Límites
 
 | | Límite |

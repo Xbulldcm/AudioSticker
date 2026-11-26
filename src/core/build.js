@@ -2,6 +2,9 @@
 (() => {
   const S = (window.Sonistick = window.Sonistick || {});
   const MAX_WEBP = 1000000;
+  // WhatsApp ignora el número de repeticiones del WebP y repite los stickers animados por su cuenta.
+  // Para que "Una vez" se vea así, el último cuadro se queda quieto este tiempo extra.
+  const HOLD_LAST_MS = 30000;
 
   async function encodeFrame(bmp, side, quality) {
     const c = new OffscreenCanvas(side, side);
@@ -54,6 +57,7 @@
       }
       if (i % 5 === 0) onProgress(i / frames.length);
     }
+    if (loop === 1 && frames.length > 1) out[out.length - 1].duration += HOLD_LAST_MS;
     const list = out.map((f) => ({ chunks: S.parseWebp(f.bytes), duration: f.duration }));
     return { blob: S.buildAnimatedWebp(list, side, { exif, loop }), uniqueFrames: out.length };
   }
